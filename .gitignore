@@ -212,3 +212,6 @@ __marimo__/
 *.jpg
 *.jpeg
 *.png
+*.json
+*.parquet
+*.pkl
