@@ -15,8 +15,9 @@ def main():
     save_model(model)
     save_best_params(best_params)
 
-    rmse, mae = evaluate_model(model, X_val, y_val)
+    rmse, mse, mae = evaluate_model(model, X_val, y_val)
     print(f"Validation RMSE: {rmse:.4f}")
+    print(f"Validation MSE: {mse:.4f}")
     print(f"Validation MAE: {mae:.4f}")
 
 

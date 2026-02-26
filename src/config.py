@@ -6,9 +6,9 @@ SPLIT_DATE = "2012-01-01"
 FEATURE_EXCLUDE = ["Date", TARGET]
 
 PARAM_GRID = {
-    "max_depth": [4, 6, 8],
-    "learning_rate": [0.01, 0.05, 0.1],
-    "n_estimators": [100, 300, 500, 700],
+    "max_depth": [6, 8, 10],
+    "learning_rate": [0.01, 0.02],
+    "n_estimators": [300, 500, 700, 1000],
 }
 
 MODEL_BASE_PARAMS = {
@@ -22,8 +22,9 @@ MODEL_BASE_PARAMS = {
 
 EARLY_STOPPING_ROUNDS = 10
 
+N_CV_SPLITS = 5
+
 GRID_SEARCH_SETTINGS = {
-    "cv": 3,
     "scoring": "neg_root_mean_squared_error",
     "n_jobs": -1,
 }
