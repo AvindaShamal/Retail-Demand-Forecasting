@@ -6,9 +6,9 @@ SPLIT_DATE = "2012-01-01"
 FEATURE_EXCLUDE = ["Date", TARGET]
 
 PARAM_GRID = {
-    "max_depth": [6, 8, 10],
-    "learning_rate": [0.01, 0.02],
-    "n_estimators": [300, 500, 700, 1000],
+    "max_depth": [6, 8],
+    "learning_rate": [0.01],
+    "n_estimators": [300, 500, 700],
 }
 
 MODEL_BASE_PARAMS = {

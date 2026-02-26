@@ -1,3 +1,4 @@
+import mlflow
 import pandas as pd
 
 from src.data_processing import time_based_split, split_features_target
@@ -6,6 +7,7 @@ from src.evaluate import evaluate_model
 
 
 def main():
+    mlflow.set_tracking_uri("http://localhost:5000")
     df = pd.read_csv("data/processed/feature_engineered_data.csv", parse_dates=["Date"])
 
     train_df, val_df = time_based_split(df)
@@ -15,10 +17,11 @@ def main():
     save_model(model)
     save_best_params(best_params)
 
-    rmse, mse, mae = evaluate_model(model, X_val, y_val)
+    rmse, mse, mae, r2 = evaluate_model(model, X_val, y_val)
     print(f"Validation RMSE: {rmse:.4f}")
     print(f"Validation MSE: {mse:.4f}")
     print(f"Validation MAE: {mae:.4f}")
+    print(f"Validation R2 Score: {r2:.4f}")
 
 
 if __name__ == "__main__":

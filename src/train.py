@@ -1,5 +1,6 @@
 import json
 import os
+import mlflow
 
 import joblib
 import xgboost as xgb
@@ -12,45 +13,55 @@ from src.config import (
     N_CV_SPLITS,
     PARAM_GRID,
 )
+from src.evaluate import plot_feature_importance
 
 
 def train_model(X_train, y_train, X_val, y_val):
-    tscv = TimeSeriesSplit(n_splits=N_CV_SPLITS)
-    base_model = xgb.XGBRegressor(**MODEL_BASE_PARAMS)
-    grid_search = GridSearchCV(
-        estimator=base_model,
-        param_grid=PARAM_GRID,
-        cv=tscv,
-        scoring=GRID_SEARCH_SETTINGS.get("scoring", "neg_root_mean_squared_error"),
-        n_jobs=GRID_SEARCH_SETTINGS.get("n_jobs", -1),
-        verbose=0,
-    )
-    grid_search.fit(X_train, y_train)
+    with mlflow.start_run():
+        tscv = TimeSeriesSplit(n_splits=N_CV_SPLITS)
+        base_model = xgb.XGBRegressor(**MODEL_BASE_PARAMS)
+        grid_search = GridSearchCV(
+            estimator=base_model,
+            param_grid=PARAM_GRID,
+            cv=tscv,
+            scoring=GRID_SEARCH_SETTINGS.get("scoring", "neg_root_mean_squared_error"),
+            n_jobs=GRID_SEARCH_SETTINGS.get("n_jobs", -1),
+            verbose=0,
+        )
+        grid_search.fit(X_train, y_train)
 
-    cv_results = grid_search.cv_results_
-    for params, mean_score, std_score in zip(
-        cv_results["params"],
-        cv_results["mean_test_score"],
-        cv_results["std_test_score"],
-    ):
-        rmse = -mean_score
-        mse = rmse**2
-        print(f"Params: {params} -> CV RMSE: {rmse:.4f}, CV MSE: {mse:.4f}")
+        cv_results = grid_search.cv_results_
+        for params, mean_score in zip(
+            cv_results["params"],
+            cv_results["mean_test_score"],
+        ):
+            rmse = -mean_score
+            mse = rmse**2
+            print(f"Params: {params} -> CV RMSE: {rmse:.4f}, CV MSE: {mse:.4f}")
 
-    best_params = grid_search.best_params_
-    print(f"\nBest CV parameters: {best_params}")
-    print(f"Best CV RMSE: {-grid_search.best_score_:.4f}")
+        best_params = grid_search.best_params_
+        print(f"\nBest CV parameters: {best_params}")
+        print(f"Best CV RMSE: {-grid_search.best_score_:.4f}")
 
-    tuned_params = {**MODEL_BASE_PARAMS, **best_params}
-    tuned_params["early_stopping_rounds"] = EARLY_STOPPING_ROUNDS
+        tuned_params = {**MODEL_BASE_PARAMS, **best_params}
+        tuned_params["early_stopping_rounds"] = EARLY_STOPPING_ROUNDS
 
-    model = xgb.XGBRegressor(**tuned_params)
-    model.fit(
-        X_train,
-        y_train,
-        eval_set=[(X_val, y_val)],
-        verbose=False,
-    )
+        model = xgb.XGBRegressor(**tuned_params)
+        model.fit(
+            X_train,
+            y_train,
+            eval_set=[(X_val, y_val)],
+            verbose=False,
+        )
+
+        mlflow.log_params(tuned_params)
+        mlflow.log_metric("rmse", -grid_search.best_score_)
+        mlflow.log_artifact("models/best_params.json")
+        plot_feature_importance(model)
+        mlflow.log_artifact("feature_importance.png")
+        mlflow.xgboost.log_model(
+            model, name="xgb_model", registered_model_name="RetailForecastingModel"
+        )
 
     return model, best_params
 
