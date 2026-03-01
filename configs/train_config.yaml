@@ -1,0 +1,18 @@
+data:
+  processed_data_path: "data/processed/feature_engineered_data.csv"
+  train_data_path: "data/processed/train_data.csv"
+
+aws:
+  s3_bucket: "retail-demand-forecasting"
+
+mlflow:
+  tracking_uri: "http://localhost:5000"
+  experiment_name: "RetailForecastingModel"
+
+model:
+  base_params:
+    n_estimators: 700
+    learning_rate: 0.01
+    max_depth: 8
+    subsample: 0.8
+    colsample_bytree: 0.8
