@@ -1,22 +1,20 @@
-from src.config import DATE_COLUMN, SPLIT_DATE
-from src.config import TARGET, FEATURE_EXCLUDE
+def time_based_split(df, config: dict) -> tuple:
+    df = df.sort_values(config["data"]["date_column"])
 
-
-def time_based_split(df):
-    df = df.sort_values(DATE_COLUMN)
-
-    train_df = df[df[DATE_COLUMN] < SPLIT_DATE]
-    val_df = df[df[DATE_COLUMN] >= SPLIT_DATE]
+    train_df = df[df[config["data"]["date_column"]] < config["data"]["split_date"]]
+    val_df = df[df[config["data"]["date_column"]] >= config["data"]["split_date"]]
 
     return train_df, val_df
 
 
-def split_features_target(train_df, val_df):
-    FEATURES = [col for col in train_df.columns if col not in FEATURE_EXCLUDE]
+def split_features_target(train_df, val_df, config: dict) -> tuple:
+    FEATURES = [
+        col for col in train_df.columns if col not in config["data"]["feature_exclude"]
+    ]
 
     X_train = train_df[FEATURES]
-    y_train = train_df[TARGET]
+    y_train = train_df[config["data"]["target"]]
     X_val = val_df[FEATURES]
-    y_val = val_df[TARGET]
+    y_val = val_df[config["data"]["target"]]
 
     return X_train, y_train, X_val, y_val

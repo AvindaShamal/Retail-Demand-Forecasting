@@ -1,7 +1,6 @@
 import json
 import os
 import mlflow
-import yaml
 
 import joblib
 import xgboost as xgb
@@ -10,16 +9,16 @@ from sklearn.metrics import mean_absolute_error, root_mean_squared_error
 from src.evaluate import plot_feature_importance
 
 
-def parameter_tuning(X_train, y_train, X_val, y_val, config_path: str = "configs/config.yaml"):
-    with open(config_path, "r") as f:
-        config = yaml.safe_load(f)
+def parameter_tuning(X_train, y_train, X_val, y_val, config: dict) -> dict:
     tscv = TimeSeriesSplit(n_splits=config["model"]["n_cv_splits"])
     base_model = xgb.XGBRegressor(**config["model"]["model_base_params"])
     grid_search = GridSearchCV(
         estimator=base_model,
         param_grid=config["model"]["param_grid"],
         cv=tscv,
-        scoring=config["model"]["grid_search_settings"].get("scoring", "neg_root_mean_squared_error"),
+        scoring=config["model"]["grid_search_settings"].get(
+            "scoring", "neg_root_mean_squared_error"
+        ),
         n_jobs=config["model"]["grid_search_settings"].get("n_jobs", -1),
         verbose=0,
     )
@@ -44,7 +43,7 @@ def parameter_tuning(X_train, y_train, X_val, y_val, config_path: str = "configs
     return tuned_params
 
 
-def train_and_log(X_train, y_train, X_val, y_val, params):
+def train_and_log(X_train, y_train, X_val, y_val, params, config: dict) -> tuple:
     with mlflow.start_run():
         mlflow.log_params(params)
 
@@ -61,18 +60,20 @@ def train_and_log(X_train, y_train, X_val, y_val, params):
         mlflow.log_artifact("feature_importance.png")
 
         mlflow.xgboost.log_model(
-            model, name="xgb_model", registered_model_name=config["model"]["registry_name"]
+            model,
+            name="xgb_model",
+            registered_model_name=config["model"]["registry_name"],
         )
 
     return model, mae, rmse
 
 
-def save_model(model, model_path="models/xgb_model.pkl"):
+def save_model(model, model_path="models/xgb_model.pkl") -> None:
     os.makedirs(os.path.dirname(model_path), exist_ok=True)
     joblib.dump(model, model_path)
 
 
-def save_best_params(best_params, params_path="models/best_params.json"):
+def save_best_params(best_params, params_path="models/best_params.json") -> None:
     directory = os.path.dirname(params_path)
     if directory:
         os.makedirs(directory, exist_ok=True)

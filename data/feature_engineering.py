@@ -1,10 +1,7 @@
 import pandas as pd
 
-df = pd.read_csv("data/raw/train.csv")
-df["Date"] = pd.to_datetime(df["Date"])
 
-
-def fill_missing_weeks(group):
+def fill_missing_weeks(group: pd.DataFrame) -> pd.DataFrame:
     store_id = group["Store"].iloc[0]
     dept_id = group["Dept"].iloc[0]
     group = group.sort_values("Date")
@@ -21,26 +18,35 @@ def fill_missing_weeks(group):
     return group.reset_index()
 
 
-def run_feature_engineering(df):
+def run_feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
     df["Date"] = pd.to_datetime(df["Date"])
-    
+
     df = df.groupby(["Store", "Dept"], group_keys=False).apply(fill_missing_weeks)
 
     LAGS = [1, 2, 3, 4]
     for lag in LAGS:
-        df[f"Sales_Lag_{lag}"] = df.groupby(["Store", "Dept"])["Weekly_Sales"].shift(lag)
+        df[f"Sales_Lag_{lag}"] = df.groupby(["Store", "Dept"])["Weekly_Sales"].shift(
+            lag
+        )
 
     ROLLING_WINDOWS = [4, 8]
     for window in ROLLING_WINDOWS:
         df[f"Sales_Rolling_Mean_{window}"] = (
-            df.groupby(["Store", "Dept"])["Weekly_Sales"].shift(1).rolling(window).mean()
+            df.groupby(["Store", "Dept"])["Weekly_Sales"]
+            .shift(1)
+            .rolling(window)
+            .mean()
         )
 
     df["IsHoliday"] = df["IsHoliday"].fillna(False).astype(int)
-    df["is_pre_holiday"] = df.groupby("Store")["IsHoliday"].shift(-1).fillna(0).astype(int)
-    df["is_post_holiday"] = df.groupby("Store")["IsHoliday"].shift(1).fillna(0).astype(int)
+    df["is_pre_holiday"] = (
+        df.groupby("Store")["IsHoliday"].shift(-1).fillna(0).astype(int)
+    )
+    df["is_post_holiday"] = (
+        df.groupby("Store")["IsHoliday"].shift(1).fillna(0).astype(int)
+    )
     df["Store"] = df["Store"].astype(int)
     df["Dept"] = df["Dept"].astype(int)
     df = df.dropna().reset_index(drop=True)
-    
+
     return df

@@ -1,7 +1,11 @@
 data:
   processed_data_path: "data/processed/feature_engineered_data.csv"
   inference_data_path: "data/processed/new_week_data.csv"
-  train_data_path: "data/processed/train_data.csv"
+  raw_data_path: "data/raw/train.csv"
+  target: "Weekly_Sales"
+  date_column: "Date"
+  split_date: "2012-01-01"
+  feature_exclude: ["Date", "Weekly_Sales"]
 
 aws:
   s3_bucket: "avinda-shamal-retail-demand-forecasting"
@@ -11,10 +15,6 @@ mlflow:
   experiment_name: "RetailForecastingModel"
 
 model:
-  target: "Weekly_Sales"
-  date_column: "Date"
-  split_date: "2012-01-01"
-  feature_exclude: ["Date", "Weekly_Sales"]
   param_grid:
     n_estimators: [300, 500, 700]
     learning_rate: [0.01]

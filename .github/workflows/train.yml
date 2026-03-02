@@ -1,4 +1,4 @@
-name: Train Model
+name: Train Retail Demand Forecasting Model
 
 on:
   push:
@@ -10,15 +10,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
+
+      - name: Download Raw Data
+        run: |
+          mkdir -p data/raw
+          aws s3 cp s3://avinda-shamal-retail-demand-forecasting/data/raw/train.csv data/raw/train.csv
 
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
 
-      - name: Run Training
+      - name: Run Training Pipeline
+        env:
+          MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
+        run: |
+          python main.py --mode train
