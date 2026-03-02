@@ -1,0 +1,22 @@
+artifact_path: /home/ubuntu/Retail-Demand-Forecasting/mlruns/0/models/m-1bbd056c8d8345e69d991f552064480b/artifacts
+flavors:
+  python_function:
+    data: model.ubj
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.xgboost
+    python_version: 3.12.3
+  xgboost:
+    code: null
+    data: model.ubj
+    model_class: xgboost.sklearn.XGBRegressor
+    model_format: ubj
+    xgb_version: 3.2.0
+mlflow_version: 3.10.0
+model_id: m-1bbd056c8d8345e69d991f552064480b
+model_size_bytes: 7276108
+model_uuid: m-1bbd056c8d8345e69d991f552064480b
+prompts: null
+run_id: b915ac5d236c4f52b53533701112b79c
+utc_time_created: '2026-03-02 08:55:09.450528'

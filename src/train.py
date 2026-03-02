@@ -1,31 +1,26 @@
 import json
 import os
 import mlflow
+import yaml
 
 import joblib
 import xgboost as xgb
 from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
 from sklearn.metrics import mean_absolute_error, root_mean_squared_error
-
-from src.config import (
-    EARLY_STOPPING_ROUNDS,
-    GRID_SEARCH_SETTINGS,
-    MODEL_BASE_PARAMS,
-    N_CV_SPLITS,
-    PARAM_GRID,
-)
 from src.evaluate import plot_feature_importance
 
 
-def parameter_tuning(X_train, y_train, X_val, y_val):
-    tscv = TimeSeriesSplit(n_splits=N_CV_SPLITS)
-    base_model = xgb.XGBRegressor(**MODEL_BASE_PARAMS)
+def parameter_tuning(X_train, y_train, X_val, y_val, config_path: str = "configs/config.yaml"):
+    with open(config_path, "r") as f:
+        config = yaml.safe_load(f)
+    tscv = TimeSeriesSplit(n_splits=config["model"]["n_cv_splits"])
+    base_model = xgb.XGBRegressor(**config["model"]["model_base_params"])
     grid_search = GridSearchCV(
         estimator=base_model,
-        param_grid=PARAM_GRID,
+        param_grid=config["model"]["param_grid"],
         cv=tscv,
-        scoring=GRID_SEARCH_SETTINGS.get("scoring", "neg_root_mean_squared_error"),
-        n_jobs=GRID_SEARCH_SETTINGS.get("n_jobs", -1),
+        scoring=config["model"]["grid_search_settings"].get("scoring", "neg_root_mean_squared_error"),
+        n_jobs=config["model"]["grid_search_settings"].get("n_jobs", -1),
         verbose=0,
     )
     grid_search.fit(X_train, y_train)
@@ -43,8 +38,8 @@ def parameter_tuning(X_train, y_train, X_val, y_val):
     print(f"\nBest CV parameters: {best_params}")
     print(f"Best CV RMSE: {-grid_search.best_score_:.4f}")
 
-    tuned_params = {**MODEL_BASE_PARAMS, **best_params}
-    tuned_params["early_stopping_rounds"] = EARLY_STOPPING_ROUNDS
+    tuned_params = {**config["model"]["model_base_params"], **best_params}
+    tuned_params["early_stopping_rounds"] = config["model"]["early_stopping_rounds"]
 
     return tuned_params
 
@@ -66,7 +61,7 @@ def train_and_log(X_train, y_train, X_val, y_val, params):
         mlflow.log_artifact("feature_importance.png")
 
         mlflow.xgboost.log_model(
-            model, name="xgb_model", registered_model_name="RetailForecastingModel"
+            model, name="xgb_model", registered_model_name=config["model"]["registry_name"]
         )
 
     return model, mae, rmse

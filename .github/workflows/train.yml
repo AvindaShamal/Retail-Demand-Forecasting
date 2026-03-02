@@ -22,5 +22,3 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run Training
-        run: |
-          python main_train.py --mode train

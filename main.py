@@ -1,27 +1,36 @@
-import mlflow
-import pandas as pd
-
-from src.data_processing import time_based_split, split_features_target
-from src.train import save_best_params, save_model, train_model
-from src.evaluate import evaluate_model
+import argparse
+from pipelines.training_pipeline import run_training_pipeline
+from pipelines.batch_inference_pipeline import run_batch_inference
 
 
 def main():
-    mlflow.set_tracking_uri("http://localhost:5000")
-    df = pd.read_csv("data/processed/feature_engineered_data.csv", parse_dates=["Date"])
+    parser = argparse.ArgumentParser(description="Retail Demand Forecasting Pipeline")
 
-    train_df, val_df = time_based_split(df)
-    X_train, y_train, X_val, y_val = split_features_target(train_df, val_df)
+    # Add an argument to choose the mode
+    parser.add_argument(
+        "--mode",
+        type=str,
+        required=True,
+        choices=["train", "predict", "all"],
+        help="Mode to run: 'train', 'predict', or 'all'",
+    )
 
-    model, best_params = train_model(X_train, y_train, X_val, y_val)
-    save_model(model)
-    save_best_params(best_params)
+    config_path = "configs/config.yaml"
 
-    rmse, mse, mae, r2 = evaluate_model(model, X_val, y_val)
-    print(f"Validation RMSE: {rmse:.4f}")
-    print(f"Validation MSE: {mse:.4f}")
-    print(f"Validation MAE: {mae:.4f}")
-    print(f"Validation R2 Score: {r2:.4f}")
+    args = parser.parse_args()
+
+    if args.mode == "train":
+        print("--- Starting Training Pipeline ---")
+        run_training_pipeline(config_path)
+
+    elif args.mode == "predict":
+        print("--- Starting Batch Inference Pipeline ---")
+        run_batch_inference(config_path)
+
+    elif args.mode == "all":
+        print("--- Running Full End-to-End Pipeline ---")
+        run_training_pipeline(config_path)
+        run_batch_inference(config_path)
 
 
 if __name__ == "__main__":
