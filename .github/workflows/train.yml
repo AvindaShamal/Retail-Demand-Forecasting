@@ -23,6 +23,7 @@ jobs:
       - name: Download Raw Data
         run: |
           mkdir -p data/raw
+          mkdir -p data/processed
           aws s3 cp s3://avinda-shamal-retail-demand-forecasting/data/raw/train.csv data/raw/train.csv
 
       - name: Setup Python
