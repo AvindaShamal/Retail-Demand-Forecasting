@@ -54,7 +54,7 @@ def train_and_log(X_train, y_train, X_val, y_val, params):
         mlflow.log_params(params)
 
         model = xgb.XGBRegressor(**params)
-        model.fit(X_train, y_train)
+        model.fit(X_train, y_train, eval_set=[(X_val, y_val)], verbose=False)
 
         preds = model.predict(X_val)
         mae = mean_absolute_error(y_val, preds)
