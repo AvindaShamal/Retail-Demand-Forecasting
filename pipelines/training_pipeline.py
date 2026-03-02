@@ -12,7 +12,7 @@ def run_training_pipeline(config_path: str) -> None:
 
     data_path = config["data"]["processed_data_path"]
     df = pd.read_csv(data_path, parse_dates=["Date"])
-    train_df, val_df = time_based_split(df, test_size=config["data"]["test_size"])
+    train_df, val_df = time_based_split(df)
     X_train, y_train, X_val, y_val = split_features_target(train_df, val_df)
 
     best_params = parameter_tuning(X_train, y_train, X_val, y_val)
