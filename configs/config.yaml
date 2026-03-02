@@ -19,7 +19,7 @@ model:
     colsample_bytree: 0.8
   registry_name: "RetailForecastingModel"
   output_path: "models/xgb_model.pkl"
-  parameters_output_path: "models/best_params.json"
+  params_output_path: "models/best_params.json"
 
 output:
   predictions_output_path: "outputs/batch_predictions.csv"
