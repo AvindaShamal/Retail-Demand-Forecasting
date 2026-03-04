@@ -1,0 +1,23 @@
+import os
+
+
+def test_config_exists():
+    """Fails if the config file accidentally gets deleted or moved."""
+    assert os.path.exists("configs/train_config.yaml"), "Config file is missing!"
+
+
+def test_pipeline_imports():
+    """Fails if a typo in the code breaks the main imports."""
+    try:
+        from src.train import train_and_log
+        from src.train import parameter_tuning
+        from src.train import save_model
+        from src.train import save_best_params
+        from src.data_processing import split_features_target
+        from src.data_processing import time_based_split
+        from src.s3_utils import download_from_s3
+        from src.s3_utils import upload_to_s3
+
+        assert True
+    except ImportError as e:
+        assert False, f"Import failed: {e}"
