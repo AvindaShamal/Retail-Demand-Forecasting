@@ -1,5 +1,6 @@
 name: Train Retail Demand Forecasting Model
 
+# Added a trigger for manual workflow dispatch and push to main branch
 on:
   push:
     branches:
