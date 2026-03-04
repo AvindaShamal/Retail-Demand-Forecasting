@@ -1,0 +1,66 @@
+name: Train Retail Demand Forecasting Model
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  # JOB 1: Code Quality and Smoke Tests
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install Testing Tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest flake8 pytest
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+      
+      - name: Run Code Quality Checks
+        run: |
+          # Fails the build if there are critical syntax errors
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # Treats style issues (spacing, line length) as warnings only
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Run Smoke Tests
+        run: pytest tests/
+  
+  # JOB 2: Trigger the EC2 VM
+  trigger-ec2:
+    needs: code-quality # Will not run if the tests fail
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: SSH into EC2 and Start Training
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          # The script runs directly on your VM
+          script: |
+            cd ~/Retail-Demand-Forecasting
+            
+            # Pull the new code you just pushed
+            git pull origin main
+            
+            # Activate the environment
+            source venv/bin/activate
+            
+            # Run the training pipeline in the background
+            nohup python main.py --mode train > latest_training.log 2>&1 &
+            
+            echo "Successfully triggered training on EC2! Check MLflow for live metrics."
