@@ -3,12 +3,13 @@ import os
 
 def test_config_exists():
     """Fails if the config file accidentally gets deleted or moved."""
-    assert os.path.exists("configs/train_config.yaml"), "Config file is missing!"
+    assert os.path.exists("configs/config.yaml"), "Config file is missing!"
 
 
 def test_pipeline_imports():
     """Fails if a typo in the code breaks the main imports."""
     try:
+        from data.feature_engineering import run_feature_engineering
         from src.train import train_and_log
         from src.train import parameter_tuning
         from src.train import save_model
