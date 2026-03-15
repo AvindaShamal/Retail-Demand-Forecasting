@@ -1,5 +1,6 @@
 import mlflow.pyfunc as pyfunc
 import yaml
+import logging
 import pandas as pd
 
 from src.s3_utils import upload_to_s3
@@ -13,7 +14,18 @@ def load_model_from_registry(
     return model
 
 
+def get_logger():
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+    )
+    return logging.getLogger(__name__)
+
+
 def run_batch_inference(config_path: str) -> None:
+    logger = get_logger()
+    logger.info("Starting batch inference pipeline.")
+
     # Load configuration
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
