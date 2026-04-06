@@ -1,0 +1,14 @@
+.git
+__pycache__
+*.pyc
+mlruns
+data/raw
+data/processed
+data/raw_data.csv
+data/*.csv
+data/__pycache__
+venv
+.env
+.DS_Store
+.ipynb_checkpoints
+notebooks
