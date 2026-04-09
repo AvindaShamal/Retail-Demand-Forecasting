@@ -4,6 +4,7 @@ import yaml
 import os
 
 from src.data_processing import time_based_split, split_features_target
+from src.mlflow_utils import get_tracking_uri
 from src.train import parameter_tuning, train_and_log, save_model, save_best_params
 from src.s3_utils import download_from_s3, upload_to_s3
 from data.feature_engineering import run_feature_engineering
@@ -13,7 +14,7 @@ def run_training_pipeline(config_path: str) -> None:
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
-    tracking_uri = os.getenv("MLFLOW_TRACKING_URI", config["mlflow"]["tracking_uri"])
+    tracking_uri = get_tracking_uri(config["mlflow"]["tracking_uri"])
     mlflow.set_tracking_uri(tracking_uri)
 
     # transforming raw data and loading to S3
